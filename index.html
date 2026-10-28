@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PLAB 거래처 관리</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="config.js"></script>
@@ -37,7 +40,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* 상단 */
 header{position:sticky;top:0;z-index:5;background:rgba(246,247,249,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 .bar{max-width:1280px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:10px}
-.bar .mark{width:28px;height:28px;border-radius:7px;font-size:12px}
+.bar-logo{height:18px;width:auto;display:block}
+.bar-div{width:1px;height:16px;background:var(--line2)}
+.login-logo{height:30px;width:auto;display:block;margin:4px auto 0}
 .bar h1{font-size:16px;margin:0;font-weight:700;white-space:nowrap}
 .bar .sp{flex:1}
 .me{color:var(--ink3);font-size:13px}
@@ -51,7 +56,26 @@ header{position:sticky;top:0;z-index:5;background:rgba(246,247,249,.92);backdrop
 .btn:disabled{opacity:.45;cursor:default}
 select.year{border:1px solid var(--line2);background:var(--panel);border-radius:8px;padding:7px 10px;font-weight:700}
 
-main{max-width:1280px;margin:0 auto;padding:20px}
+.bar{max-width:none}
+.shell{display:grid;grid-template-columns:220px minmax(0,1fr);max-width:1500px;margin:0 auto}
+main{padding:20px 24px 40px;min-width:0}
+.side{position:sticky;top:53px;align-self:start;height:calc(100vh - 53px);overflow:auto;padding:20px 12px;border-right:1px solid var(--line)}
+.side-h{font-size:11px;font-weight:700;color:var(--ink3);letter-spacing:.04em;padding:0 10px 8px}
+.nav-i{display:flex;align-items:center;gap:8px;width:100%;border:none;background:none;text-align:left;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--ink2);font-weight:600}
+.nav-i:hover{background:#eceef1}
+.nav-i.on{background:var(--ink);color:#fff}
+.nav-i .ic{width:18px;text-align:center;opacity:.8}
+.nav-i .n{margin-left:auto;font-weight:500;color:var(--ink3);font-variant-numeric:tabular-nums;font-size:13px}
+.nav-i.on .n{color:#c9ced6}
+.nav-sep{height:1px;background:var(--line);margin:8px 10px}
+.side-note{font-size:11px;color:var(--ink3);line-height:1.6;padding:12px 10px 0;margin:0}
+.menu-btn{display:none;border:none;background:none;font-size:20px;padding:2px 6px;cursor:pointer;color:var(--ink)}
+.side-scrim{position:fixed;inset:0;background:rgba(15,18,22,.32);z-index:8}
+.page-h{margin-bottom:16px}
+.page-h h2{font-size:20px;margin:0}
+.page-h p{margin:4px 0 0;color:var(--ink3);font-size:13px}
+#skinds{margin-bottom:12px}
+.reason{max-width:360px}
 
 /* 요약 */
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
@@ -212,6 +236,15 @@ label input:focus,label select:focus,label textarea:focus{outline:2px solid var(
 .loading{padding:40px;text-align:center;color:var(--ink3)}
 
 @media (max-width:900px){
+  .shell{display:block}
+  .menu-btn{display:block}
+  .bar{gap:8px}
+  .bar-div,.bar h1{display:none}
+  .bar-logo{height:16px}
+  #addBtn{padding:7px 10px}
+  .side{position:fixed;top:0;left:0;bottom:0;height:100vh;width:260px;background:var(--bg);z-index:9;transform:translateX(-100%);transition:transform .2s;border-right:1px solid var(--line)}
+  .side.open{transform:none}
+  main{padding:16px}
   .stats{grid-template-columns:1fr 1fr}
   .stat{padding:12px}
   .stat .v{font-size:17px}
@@ -233,7 +266,7 @@ label input:focus,label select:focus,label textarea:focus{outline:2px solid var(
 <!-- 로그인 -->
 <section id="login">
   <div class="login-card">
-    <span class="mark">PL</span>
+    <img class="login-logo" src="logo.png" alt="PLAB">
     <h1>거래처 관리</h1>
     <p>거래처별 계약·고정비·건별 입금·활동 기록을<br>한 곳에서 관리합니다.</p>
     <div id="gbtn"></div>
@@ -245,7 +278,9 @@ label input:focus,label select:focus,label textarea:focus{outline:2px solid var(
 <section id="app" class="hidden">
   <header>
     <div class="bar">
-      <span class="mark">PL</span>
+      <button class="menu-btn" id="menuBtn" aria-label="메뉴 열기">☰</button>
+      <img class="bar-logo" src="logo.png" alt="PLAB">
+      <span class="bar-div"></span>
       <h1>거래처 관리</h1>
       <select class="year" id="year" aria-label="연도"></select>
       <span class="sp"></span>
@@ -254,7 +289,15 @@ label input:focus,label select:focus,label textarea:focus{outline:2px solid var(
       <button class="btn primary" id="addBtn">+ 거래처</button>
     </div>
   </header>
+  <div class="shell">
+  <nav class="side" id="side" aria-label="거래처 메뉴">
+    <div class="side-h">거래처</div>
+    <div id="nav"></div>
+    <p class="side-note">건수는 전체 기간 입금 기준이에요. 두 번째 입금이 들어오면 단건에서 정기로 자동으로 옮겨집니다.</p>
+  </nav>
+  <div class="side-scrim hidden" id="sideScrim"></div>
   <main>
+    <div class="page-h"><h2 id="pageTitle"></h2><p id="pageDesc"></p></div>
     <div class="stats" id="stats"></div>
     <div class="seg" id="types"></div>
     <div class="tools">
@@ -269,12 +312,10 @@ label input:focus,label select:focus,label textarea:focus{outline:2px solid var(
       </select>
       <label class="check"><input type="checkbox" id="onlyYear" checked> <span id="onlyYearLbl">선택 연도 거래처만</span></label>
     </div>
+    <div class="kinds hidden" id="skinds"></div>
     <div class="table">
       <div class="scroll"><table>
-        <thead><tr>
-          <th>거래처</th><th>유형</th><th>담당팀</th><th>단계</th>
-          <th class="num">월 고정비</th><th class="num" id="thYear">입금</th><th class="num">미입금</th><th>최근 입금</th>
-        </tr></thead>
+        <thead id="thead"></thead>
         <tbody id="rows"></tbody>
       </table></div>
       <div class="pager" id="pager"></div>
@@ -282,6 +323,7 @@ label input:focus,label select:focus,label textarea:focus{outline:2px solid var(
     <div class="cards" id="cards"></div>
     <div class="pager m" id="pagerM"></div>
   </main>
+  </div>
 </section>
 
 <!-- 상세 -->
@@ -308,7 +350,14 @@ label input:focus,label select:focus,label textarea:focus{outline:2px solid var(
   const THIS_YEAR = String(NOW.getUTCFullYear()), THIS_MONTH = NOW.getUTCMonth() + 1;
   const S = { token: null, user: null, brands: [], years: [], opt: {}, incomeLinked: false,
               year: THIS_YEAR, type: '', team: '', stage: '', q: '', sort: 'amount', onlyYear: true,
-              page: 1, per: 20, cur: null, det: null, tab: 'fixed', kind: '' };
+              page: 1, per: 20, cur: null, det: null, tab: 'fixed', kind: '', view: 'regular', skind: '' };
+  const VIEWS = {
+    regular:  { name: '정기 거래처', ic: '↻', desc: '지금까지 거래가 2건 이상인 거래처예요. 월 고정비와 연도별 입금을 함께 봅니다.' },
+    single:   { name: '단건 거래처', ic: '①', desc: '지금까지 거래가 1건뿐인 거래처예요. 프차톡·홈페이지처럼 한 번 거래하고 끝난 곳을 찾아 재영업할 때 활용하세요.' },
+    investor: { name: '투자사', ic: '◆', desc: '프랩에 투자한 회사예요. 투자사와의 용역·정산 입금도 여기서 봅니다.' },
+    all:      { name: '전체', ic: '≡', desc: '등록된 모든 거래처예요. 아직 입금 기록이 없는 거래처도 여기서 볼 수 있어요.' }
+  };
+  const SEP_BEFORE = { investor: 1, all: 1 };
   const $ = id => document.getElementById(id);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const won = n => (Math.round(Number(n) || 0)).toLocaleString('ko-KR');
@@ -356,13 +405,19 @@ label input:focus,label select:focus,label textarea:focus{outline:2px solid var(
 
   async function boot() {
     $('login').classList.add('hidden'); $('app').classList.remove('hidden');
-    $('rows').innerHTML = '<tr><td colspan="8" class="loading">불러오는 중…</td></tr>';
+    $('rows').innerHTML = '<tr><td colspan="8" class="loading">불러오는 중…</td></tr>'; renderNavSafe();
     $('cards').innerHTML = '<div class="loading">불러오는 중…</div>';
     await load();
   }
   async function load() {
     try {
       const d = await api('list');
+      if (!d || !Array.isArray(d.years) || !d.options) {
+        const msg = 'Apps Script가 예전 버전입니다. 새 Code.gs를 붙여넣고 배포 관리 › 수정 › 새 버전으로 재배포해 주세요.';
+        $('rows').innerHTML = `<tr><td colspan="8" class="empty">${msg}</td></tr>`;
+        $('cards').innerHTML = `<div class="empty">${msg}</div>`;
+        return toast('서버 재배포가 필요합니다.', true);
+      }
       S.brands = d.brands; S.opt = d.options; S.incomeLinked = d.incomeLinked;
       S.years = [...new Set([THIS_YEAR, ...d.years])].sort().reverse();
       if (S.year && !S.years.includes(S.year)) S.year = THIS_YEAR;
@@ -384,10 +439,24 @@ label input:focus,label select:focus,label textarea:focus{outline:2px solid var(
   const colorOf = (kind, v) => `var(--${kind}-${v}, #9ca3af)`;
   const tag = (kind, v) => v ? `<span class="tag"><span class="dot" style="background:${colorOf(kind, v)}"></span>${esc(v)}</span>` : '<span class="muted">-</span>';
 
-  function filtered(ignoreType) {
+  const typeOf = b => b.거래처유형 || '가맹본부';
+  const countOf = b => b.총건수 !== undefined ? b.총건수 : ysum(b, '').건수;
+  function inView(b, v) {
+    const inv = typeOf(b) === '투자사';
+    if (v === 'investor') return inv;
+    if (v === 'regular') return !inv && countOf(b) >= 2;
+    if (v === 'single') return !inv && countOf(b) === 1;
+    return true;
+  }
+  const recentKey = b => b.단건 ? b.단건.년 + '-' + pad(b.단건.월) : (b.최근입금 || '');
+
+  function filtered(o) {
+    o = o || {};
     const q = S.q.trim().toLowerCase().replace(/-/g, '');
     return S.brands.filter(b =>
-      (ignoreType || !S.type || (b.거래처유형 || '가맹본부') === S.type) &&
+      inView(b, S.view) &&
+      (o.noType || !S.type || typeOf(b) === S.type) &&
+      (o.noKind || S.view !== 'single' || !S.skind || (b.단건 && b.단건.항목) === S.skind) &&
       (!S.team || (S.team === '-' ? !b.담당팀 : b.담당팀 === S.team)) &&
       (!S.stage || b.진행단계 === S.stage) &&
       (!S.onlyYear || !S.year || ysum(b, S.year).건수 > 0) &&
@@ -397,7 +466,7 @@ label input:focus,label select:focus,label textarea:focus{outline:2px solid var(
     const y = S.year;
     const by = {
       amount: (a, b) => ysum(b, y).입금 + ysum(b, y).미입금 - ysum(a, y).입금 - ysum(a, y).미입금,
-      recent: (a, b) => (b.최근입금 || '').localeCompare(a.최근입금 || ''),
+      recent: (a, b) => recentKey(b).localeCompare(recentKey(a)),
       unpaid: (a, b) => ysum(b, y).미입금 - ysum(a, y).미입금,
       name:   (a, b) => a.브랜드명.localeCompare(b.브랜드명, 'ko')
     };
@@ -405,35 +474,73 @@ label input:focus,label select:focus,label textarea:focus{outline:2px solid var(
   }
 
   // ---------- 목록 ----------
+  function renderNav() {
+    $('nav').innerHTML = Object.entries(VIEWS).map(([k, v]) =>
+      (SEP_BEFORE[k] ? '<div class="nav-sep"></div>' : '') +
+      `<button class="nav-i${S.view === k ? ' on' : ''}" data-v="${k}"><span class="ic">${v.ic}</span>${v.name}<span class="n">${S.brands.filter(b => inView(b, k)).length}</span></button>`).join('');
+    $('pageTitle').textContent = VIEWS[S.view].name;
+    $('pageDesc').textContent = VIEWS[S.view].desc;
+    document.title = VIEWS[S.view].name + ' · PLAB 거래처 관리';
+  }
+
+  function renderNavSafe() { $('pageTitle').textContent = VIEWS[S.view].name; $('pageDesc').textContent = VIEWS[S.view].desc; }
+
   function render() {
-    const y = S.year, yl = y ? y + '년' : '전체 기간';
-    $('thYear').textContent = (y ? y + '년 ' : '') + '입금';
+    const y = S.year, yl = y ? y + '년' : '전체 기간', single = S.view === 'single';
+    const li = S.incomeLinked;
+    renderNav();
     $('onlyYearLbl').textContent = y ? y + '년 거래처만' : '거래 있는 곳만';
 
-    // 요약 (유형 필터까지 적용된 범위)
-    const scope = filtered(false);
+    // 요약
+    const scope = filtered();
     const t = scope.reduce((s, b) => { const z = ysum(b, y); Object.keys(s).forEach(k => s[k] += z[k]); return s; },
       { 입금: 0, 미입금: 0, 미입금건수: 0, 고정비: 0, 건별: 0, 건수: 0 });
     const tot = t.고정비 + t.건별 || 1;
     const unpaidN = scope.filter(b => ysum(b, y).미입금 > 0).length;
     const fixedMonthly = scope.reduce((s, b) => s + (b.월고정비 || 0), 0);
-    const li = S.incomeLinked;
+    let third;
+    if (single) {
+      const kc = {};
+      scope.forEach(b => { if (b.단건) kc[b.단건.항목] = (kc[b.단건.항목] || 0) + 1; });
+      const top = Object.entries(kc).sort((a, b) => b[1] - a[1]).slice(0, 3);
+      third = `<div class="stat"><div class="k">많은 구분</div><div class="v">${top.length ? esc(top[0][0]) : '-'}<small>${top.length ? top[0][1] + '곳' : ''}</small></div>
+        <div class="sub">${top.slice(1).map(([k, n]) => `<span>${esc(k)} ${n}</span>`).join('')}</div></div>`;
+    } else {
+      third = `<div class="stat"><div class="k">매월 고정비 (월정액 설정)</div><div class="v">${won(fixedMonthly)}<small>원</small></div>
+        <div class="sub"><span>${scope.filter(b => b.월고정비 || b.고정변동).length}곳</span>${scope.some(b => b.고정변동) ? '<span>금액 변동 항목 제외</span>' : ''}</div></div>`;
+    }
     $('stats').innerHTML = `
       <div class="stat"><div class="k">거래처</div><div class="v">${scope.length}<small>곳</small></div>
         <div class="sub"><span>${yl} 기준</span></div></div>
       <div class="stat"><div class="k">${yl} 입금 완료</div><div class="v">${li ? won(t.입금) + '<small>원</small>' : '–'}</div>
+        ${single ? '<div class="sub"><span>거래처당 1건</span></div>' : `
         <div class="split"><i style="width:${t.고정비 / tot * 100}%;background:var(--fixed)"></i><i style="width:${t.건별 / tot * 100}%;background:var(--oneoff)"></i></div>
-        <div class="sub"><span><span class="dot" style="background:var(--fixed)"></span> 고정비 ${man(t.고정비)}</span><span><span class="dot" style="background:var(--oneoff)"></span> 건별 ${man(t.건별)}</span></div></div>
-      <div class="stat"><div class="k">매월 고정비 (월정액 설정)</div><div class="v">${won(fixedMonthly)}<small>원</small></div>
-        <div class="sub"><span>${scope.filter(b => b.월고정비 || b.고정변동).length}곳</span>${scope.some(b => b.고정변동) ? '<span>금액 변동 항목 제외</span>' : ''}</div></div>
+        <div class="sub"><span><span class="dot" style="background:var(--fixed)"></span> 고정비 ${man(t.고정비)}</span><span><span class="dot" style="background:var(--oneoff)"></span> 건별 ${man(t.건별)}</span></div>`}</div>
+      ${third}
       <div class="stat${t.미입금 ? ' warn' : ''}"><div class="k">${yl} 미입금</div><div class="v">${li ? won(t.미입금) + '<small>원</small>' : '–'}</div>
         <div class="sub"><span>${unpaidN}곳 · ${t.미입금건수}건</span></div></div>`;
 
-    // 유형 세그먼트
-    const base = filtered(true);
-    const cnt = v => base.filter(b => (b.거래처유형 || '가맹본부') === v).length;
+    // 유형 탭 (투자사 메뉴에서는 숨김, 정기·단건에서는 투자사 제외)
+    const base = filtered({ noType: true });
+    const types = S.view === 'all' ? S.opt.types : S.opt.types.filter(v => v !== '투자사');
+    $('types').classList.toggle('hidden', S.view === 'investor');
     $('types').innerHTML = `<button data-t=""${S.type ? '' : ' class="on"'}>전체 <span class="n">${base.length}</span></button>` +
-      S.opt.types.map(v => `<button data-t="${esc(v)}"${S.type === v ? ' class="on"' : ''}><span class="dot" style="background:${colorOf('t', v)}"></span>${esc(v)} <span class="n">${cnt(v)}</span></button>`).join('');
+      types.map(v => `<button data-t="${esc(v)}"${S.type === v ? ' class="on"' : ''}><span class="dot" style="background:${colorOf('t', v)}"></span>${esc(v)} <span class="n">${base.filter(b => typeOf(b) === v).length}</span></button>`).join('');
+
+    // 단건: 구분 칩
+    $('skinds').classList.toggle('hidden', !single);
+    if (single) {
+      const kb = filtered({ noKind: true }), kc = {};
+      kb.forEach(b => { if (b.단건) { const k = kc[b.단건.항목] = kc[b.단건.항목] || { n: 0, sum: 0 }; k.n++; k.sum += b.단건.금액; } });
+      if (S.skind && !kc[S.skind]) S.skind = '';
+      $('skinds').innerHTML = `<button data-sk=""${S.skind ? '' : ' class="on"'}>전체 구분<span class="n">${kb.length}</span></button>` +
+        Object.entries(kc).sort((a, b) => b[1].n - a[1].n).map(([k, v]) => `<button data-sk="${esc(k)}"${S.skind === k ? ' class="on"' : ''}>${esc(k)}<span class="n">${v.n} · ${man(v.sum)}</span></button>`).join('');
+    }
+
+    // 머리글
+    $('thead').innerHTML = single
+      ? `<tr><th>귀속월</th><th>거래처</th><th>구분</th><th>사유</th><th class="num">금액</th><th>입금</th><th>담당팀</th><th>단계</th></tr>`
+      : `<tr><th>거래처</th><th>유형</th><th>담당팀</th><th>단계</th><th class="num">월 고정비</th><th class="num">${y ? y + '년 ' : ''}입금</th><th class="num">미입금</th><th>최근 입금</th></tr>`;
 
     // 목록 + 페이지
     const list = sorted(scope);
@@ -442,9 +549,28 @@ label input:focus,label select:focus,label textarea:focus{outline:2px solid var(
     const slice = list.slice((S.page - 1) * S.per, S.page * S.per);
 
     if (!list.length) {
-      const msg = S.brands.length ? '조건에 맞는 거래처가 없습니다.' : '아직 등록된 거래처가 없습니다. 시트 메뉴의 <b>입출금 시트 거래처 가져오기</b>를 실행하거나 <b>+ 거래처</b>로 등록하세요.';
+      const msg = !S.brands.length ? '아직 등록된 거래처가 없습니다. 시트 메뉴의 <b>입출금 시트 거래처 가져오기</b>를 실행하거나 <b>+ 거래처</b>로 등록하세요.'
+        : (S.onlyYear && y ? `${y}년에 해당하는 거래처가 없습니다. 위의 <b>${y}년 거래처만</b> 체크를 풀면 다른 연도도 볼 수 있어요.` : '조건에 맞는 거래처가 없습니다.');
       $('rows').innerHTML = `<tr><td colspan="8" class="empty">${msg}</td></tr>`;
       $('cards').innerHTML = `<div class="empty">${msg}</div>`;
+    } else if (single) {
+      const paidCell = d => d.입금 ? `<span class="pill ok">입금 ${esc(d.입금일)}</span>` : '<span class="pill warn">미입금</span>';
+      $('rows').innerHTML = slice.map(b => { const d = b.단건 || {}; return `
+        <tr data-id="${esc(b.ID)}">
+          <td style="white-space:nowrap">${d.년 ? d.년 + '-' + pad(d.월) : '-'}</td>
+          <td><div class="bname">${esc(b.브랜드명)}</div><div class="bsub">${esc([b.법인명, b.사업자번호].filter(Boolean).join(' · '))}</div></td>
+          <td>${d.항목 ? `<span class="tag">${esc(d.항목)}</span>` : '-'}</td>
+          <td class="reason">${esc(d.사유 || '')}</td>
+          <td class="num">${won(d.금액)}</td>
+          <td>${d.사유 ? paidCell(d) : '-'}</td>
+          <td>${esc(b.담당팀) || '<span class="muted">미지정</span>'}</td>
+          <td>${tag('s', b.진행단계)}</td>
+        </tr>`; }).join('');
+      $('cards').innerHTML = slice.map(b => { const d = b.단건 || {}; return `
+        <div class="card" data-id="${esc(b.ID)}">
+          <div class="row"><div><div class="bname">${esc(b.브랜드명)}</div><div class="bsub">${esc(d.사유 || '')}</div></div>${d.항목 ? `<span class="tag">${esc(d.항목)}</span>` : ''}</div>
+          <div class="meta"><span>${d.년 ? d.년 + '-' + pad(d.월) : ''}</span><b style="color:var(--ink)">${won(d.금액)}원</b>${d.사유 ? paidCell(d) : ''}<span>${esc(b.담당팀 || '팀 미지정')}</span></div>
+        </div>`; }).join('');
     } else {
       const amt = b => { const z = ysum(b, y), s = z.고정비 + z.건별 || 1;
         return !li ? '<span class="muted">-</span>' : !z.건수 ? '<span class="muted">0</span>' :
@@ -453,7 +579,7 @@ label input:focus,label select:focus,label textarea:focus{outline:2px solid var(
       $('rows').innerHTML = slice.map(b => `
         <tr data-id="${esc(b.ID)}">
           <td><div class="bname">${esc(b.브랜드명)}</div><div class="bsub">${esc([b.법인명, b.사업자번호].filter(Boolean).join(' · '))}</div></td>
-          <td>${tag('t', b.거래처유형 || '가맹본부')}</td>
+          <td>${tag('t', typeOf(b))}</td>
           <td>${esc(b.담당팀) || '<span class="muted">미지정</span>'}</td>
           <td>${tag('s', b.진행단계)}</td>
           <td class="num">${b.월고정비 ? won(b.월고정비) + (b.고정변동 ? ' <span class="muted">+변동</span>' : '') : b.고정변동 ? '<span class="muted">매월 변동</span>' : '<span class="muted">-</span>'}</td>
@@ -463,12 +589,26 @@ label input:focus,label select:focus,label textarea:focus{outline:2px solid var(
         </tr>`).join('');
       $('cards').innerHTML = slice.map(b => { const z = ysum(b, y); return `
         <div class="card" data-id="${esc(b.ID)}">
-          <div class="row"><div><div class="bname">${esc(b.브랜드명)}</div><div class="bsub">${esc(b.법인명 || '')}</div></div>${tag('t', b.거래처유형 || '가맹본부')}</div>
+          <div class="row"><div><div class="bname">${esc(b.브랜드명)}</div><div class="bsub">${esc(b.법인명 || '')}</div></div>${tag('t', typeOf(b))}</div>
           <div class="meta">${tag('s', b.진행단계)}<span>${esc(b.담당팀 || '팀 미지정')}</span><span>${y || '전체'} 입금 ${man(z.입금)}</span>${z.미입금 ? `<span class="pill warn">미입금 ${man(z.미입금)}</span>` : ''}</div>
         </div>`; }).join('');
     }
     $('pager').innerHTML = $('pagerM').innerHTML = pagerHtml(list.length, pages);
   }
+
+  function setView(v, fromHash) {
+    if (!VIEWS[v]) v = 'regular';
+    if (v !== S.view) {
+      S.view = v; S.page = 1; S.skind = '';
+      if (S.type === '투자사' && v !== 'all') S.type = '';
+      if (v === 'investor') S.type = '';
+    }
+    if (!fromHash && location.hash !== '#' + v) history.replaceState(null, '', '#' + v);
+    closeSide();
+    if (S.brands.length || S.opt.types) render();
+  }
+  function openSide() { $('side').classList.add('open'); $('sideScrim').classList.remove('hidden'); }
+  function closeSide() { $('side').classList.remove('open'); $('sideScrim').classList.add('hidden'); }
 
   function pagerHtml(total, pages) {
     if (!total) return '';
@@ -490,7 +630,7 @@ label input:focus,label select:focus,label textarea:focus{outline:2px solid var(
     $('scrim').classList.remove('hidden'); $('drawer').classList.remove('hidden'); document.body.style.overflow = 'hidden';
     $('dYear').innerHTML = $('year').innerHTML; $('dYear').value = S.year;
     if (!b) {
-      S.cur = { ID: '', 거래처유형: S.type || '가맹본부', 진행단계: '상담', 담당팀: S.team && S.team !== '-' ? S.team : '', 우리담당자: S.user ? S.user.name : '' };
+      S.cur = { ID: '', 거래처유형: S.view === 'investor' ? '투자사' : (S.type || '가맹본부'), 진행단계: '상담', 담당팀: S.team && S.team !== '-' ? S.team : '', 우리담당자: S.user ? S.user.name : '' };
       S.tab = 'info'; head(); return showTab();
     }
     head();
@@ -744,6 +884,10 @@ label input:focus,label select:focus,label textarea:focus{outline:2px solid var(
   const reset = () => { S.page = 1; render(); };
   $('year').onchange = e => { S.year = e.target.value; reset(); };
   $('types').onclick = e => { const b = e.target.closest('button'); if (b) { S.type = b.dataset.t; reset(); } };
+  $('skinds').onclick = e => { const b = e.target.closest('button'); if (b) { S.skind = b.dataset.sk; reset(); } };
+  $('nav').onclick = e => { const b = e.target.closest('.nav-i'); if (b) setView(b.dataset.v); };
+  $('menuBtn').onclick = openSide; $('sideScrim').onclick = closeSide;
+  window.addEventListener('hashchange', () => setView(location.hash.slice(1), true));
   $('q').oninput = e => { S.q = e.target.value; reset(); };
   $('team').onchange = e => { S.team = e.target.value; reset(); };
   $('stage').onchange = e => { S.stage = e.target.value; reset(); };
@@ -771,6 +915,7 @@ label input:focus,label select:focus,label textarea:focus{outline:2px solid var(
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && S.cur) closeDrawer(); });
 
+  if (VIEWS[location.hash.slice(1)]) S.view = location.hash.slice(1);
   if (!CFG.CLIENT_ID || !CFG.API_URL) $('loginErr').textContent = 'config.js에 CLIENT_ID와 API_URL을 먼저 넣어 주세요.';
   else initLogin();
 })();
